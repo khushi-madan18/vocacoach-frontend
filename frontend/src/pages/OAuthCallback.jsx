@@ -1,17 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { setAuthToken } from "../utils/api";
 
-export default function OAuthCallback() {
+export default function OauthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const url = new URLSearchParams(window.location.search);
-    const token = url.get("token");
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
 
     if (token) {
       localStorage.setItem("token", token);
-      setAuthToken(token);
       navigate("/dashboard");
     } else {
       navigate("/login");
@@ -19,8 +17,8 @@ export default function OAuthCallback() {
   }, []);
 
   return (
-    <div className="auth-container">
-      <h2 className="auth-title">Finishing Sign-in...</h2>
+    <div style={{ textAlign: "center", marginTop: "40px" }}>
+      <h2>Logging you in...</h2>
     </div>
   );
 }

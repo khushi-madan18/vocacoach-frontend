@@ -1,60 +1,85 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import api from "../utils/api";
+
+const BACKEND = (import.meta.env.VITE_API_BASE || "http://localhost:4000/api").replace(/\/$/, "");
 
 export default function Login() {
-  const { login } = useAuth();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+  const [error, setError] = useState("");
 
-  const onSubmit = async (e) => {
+  const googleUrl = `${BACKEND}/auth/google`;
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    setErr("");
+    setError("");
     try {
-      await login(email, password);
+      const res = await api.post("/auth/login", { email, password });
+      const token = res?.data?.token;
+      if (token) localStorage.setItem("token", token);
       navigate("/dashboard");
-    } catch (error) {
-      setErr(error.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      setError(err?.response?.data?.error || "Login failed");
     }
-  };
+  }
 
   return (
-    <div className="auth-container">
-      <h2 className="auth-title">Welcome Back</h2>
+    <div className="page-root">
+      <div className="auth-top">
+        <img src="/logo.svg" alt="VocaCoach logo" className="voca-logo" />
+      </div>
 
-      <form onSubmit={onSubmit}>
-        {err && <p className="error">{err}</p>}
+      <main className="auth-main">
+        <div className="card auth-card-lg">
+          <h1 className="card-title">Welcome back</h1>
+          <p className="card-sub">Enter your email and password to login</p>
 
-        <input
-          className="auth-input"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          {error && <div className="alert-error">{error}</div>}
 
-        <input
-          className="auth-input"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <form onSubmit={handleSubmit} className="auth-form">
+            <label className="label">
+              <span className="label-text">Email</span>
+              <input
+                className="input"
+                type="email"
+                placeholder="m@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </label>
 
-        <button className="auth-btn">Login</button>
-      </form>
+            <label className="label">
+              <span className="label-text">Password</span>
+              <input
+                className="input"
+                type="password"
+                placeholder="enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </label>
 
-      <a
-        href={`${import.meta.env.VITE_API_BASE || "http://localhost:4000/api"}/auth/google`}
-      >
-        <button className="google-btn">Continue with Google</button>
-      </a>
+            <button className="btn-primary" type="submit">Login</button>
+          </form>
 
-      <p className="text-center">
-        Don't have an account? <Link to="/signup">Create account</Link>
-      </p>
+          <div className="divider">or</div>
+
+          <a className="btn-google" href={googleUrl}>
+            <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" style={{marginRight:10}}>
+              <path fill="#EA4335" d="M..."></path>
+            </svg>
+            Sign in with Google
+          </a>
+
+          <p className="muted">
+            Don’t have an account? <Link to="/signup">Sign up</Link>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
